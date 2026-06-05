@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Report</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <h1>Daily Report</h1>
+
+    <div>
+        <a href="add-entry.html">
+            <button>Add New Entry</button>
+        </a>
+    </div>
+
+    <br>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Gross</th>
+                <th>Net</th>
+                <th>Rate</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+
+        <tbody id="reportBody">
+        </tbody>
+    </table>
+
+    <h2>
+        Total Amount:
+        <span id="overallTotal">0</span>
+    </h2>
+
+    <script src="js/report.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Daily Entry</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div class="container">
+
+        <h1>Add Daily Entry</h1>
+
+        <form id="entryForm">
+
+            <label for="date">Date</label>
+            <input type="date" id="date" required>
+
+            <label for="grossWeight">Gross Weight</label>
+            <input type="number" id="grossWeight" placeholder="Enter Gross Weight" required>
+
+            <label for="netWeight">Net Weight</label>
+            <input type="number" id="netWeight" placeholder="Enter Net Weight" required>
+
+            <label for="kgRate">KG Rate</label>
+            <input type="number" id="kgRate" placeholder="Enter KG Rate" required>
+
+            <button type="submit">Save Entry</button>
+
+            <button type="button" onclick="window.location.href='report.html'">
+                View Report
+            </button>
+
+        </form>
+
+    </div>
+
+    <script src="js/entry.js"></script>
+
+</body>
+</html>
