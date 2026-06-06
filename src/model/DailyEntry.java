@@ -1,70 +1,100 @@
 package model;
 
+import java.util.UUID;
+
 public class DailyEntry {
 
-    private String date;
-    private double grossWeight;
-    private double netWeight;
-    private double kgRate;
-    private double amount;
+private String id;
+private String customerName;
+private String date;
+private double grossWeight;
+private double netWeight;
+private double kgRate;
+private double amount;
 
-    public DailyEntry() {
-    }
+/* ---------------- DEFAULT ---------------- */
+public DailyEntry() {
+this.id = UUID.randomUUID().toString();
+}
 
-    public DailyEntry(String date, double grossWeight, double netWeight, double kgRate) {
-        this.date = date;
-        this.grossWeight = grossWeight;
-        this.netWeight = netWeight;
-        this.kgRate = kgRate;
-        this.amount = netWeight * kgRate;
-    }
+/* ---------------- CREATE ENTRY ---------------- */
+public DailyEntry(
+String customerName,
+String date,
+double grossWeight,
+double netWeight,
+double kgRate) {
 
-    public String getDate() {
-        return date;
-    }
+this.id = UUID.randomUUID().toString();
+this.customerName = customerName;
+this.date = date;
+this.grossWeight = grossWeight;
+this.netWeight = netWeight;
+this.kgRate = kgRate;
+this.amount = netWeight * kgRate;
+}
 
-    public void setDate(String date) {
-        this.date = date;
-    }
+/* ---------------- GETTERS/SETTERS ---------------- */
+public String getId() {
+return id;
+}
 
-    public double getGrossWeight() {
-        return grossWeight;
-    }
+public String getCustomerName() {
+return customerName;
+}
 
-    public void setGrossWeight(double grossWeight) {
-        this.grossWeight = grossWeight;
-    }
+public void setCustomerName(String customerName) {
+this.customerName = customerName;
+}
 
-    public double getNetWeight() {
-        return netWeight;
-    }
+public String getDate() {
+return date;
+}
 
-    public void setNetWeight(double netWeight) {
-        this.netWeight = netWeight;
-    }
+public void setDate(String date) {
+this.date = date;
+}
 
-    public double getKgRate() {
-        return kgRate;
-    }
+public double getGrossWeight() {
+return grossWeight;
+}
 
-    public void setKgRate(double kgRate) {
-        this.kgRate = kgRate;
-    }
+public void setGrossWeight(double grossWeight) {
+this.grossWeight = grossWeight;
+}
 
-    public double getAmount() {
-        return amount;
-    }
+public double getNetWeight() {
+return netWeight;
+}
 
-    public void calculateAmount() {
-        this.amount = netWeight * kgRate;
-    }
+public void setNetWeight(double netWeight) {
+this.netWeight = netWeight;
+}
 
-    @Override
-    public String toString() {
-        return "Date: " + date +
-                ", Gross Weight: " + grossWeight +
-                ", Net Weight: " + netWeight +
-                ", Kg Rate: " + kgRate +
-                ", Amount: " + amount;
-    }
+public double getKgRate() {
+return kgRate;
+}
+
+public void setKgRate(double kgRate) {
+this.kgRate = kgRate;
+}
+
+public double getAmount() {
+return amount;
+}
+
+public void calculateAmount() {
+this.amount = netWeight * kgRate;
+}
+
+/* ---------------- STRING ---------------- */
+@Override
+public String toString() {
+return customerName + "," +
+date + "," +
+grossWeight + "," +
+netWeight + "," +
+kgRate + "," +
+amount;
+}
 }
