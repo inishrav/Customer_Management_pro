@@ -2,17 +2,17 @@ let form = document.getElementById("entryForm");
 let tableBody = document.getElementById("customerTableBody");
 let searchBox = document.getElementById("searchCustomer");
 
+// 1. Added Summary Section Variables
+let summarySection = document.getElementById("summarySection");
+let summaryTableBody = document.getElementById("summaryTableBody");
+
 function loadEntries(data = null) {
-
-    let entries =
-        JSON.parse(localStorage.getItem("entries")) || [];
-
+    let entries = JSON.parse(localStorage.getItem("entries")) || [];
     let list = data || entries;
 
     tableBody.innerHTML = "";
 
     list.forEach((entry, index) => {
-
         tableBody.innerHTML += `
         <tr>
             <td>${entry.customerName}</td>
@@ -25,7 +25,6 @@ function loadEntries(data = null) {
                 <button onclick="editEntry(${index})">
                     Edit
                 </button>
-
                 <button onclick="deleteEntry(${index})">
                     Delete
                 </button>
@@ -33,29 +32,22 @@ function loadEntries(data = null) {
         </tr>
         `;
     });
+
+    // Hide summary section when full/unfiltered list is loaded
+    if (!data && summarySection) {
+        summarySection.style.display = "none";
+    }
 }
 
 /* SAVE / UPDATE */
-
 form.addEventListener("submit", function (e) {
-
     e.preventDefault();
 
-    let customerName =
-        document.getElementById("customerName").value;
-
-    let date =
-        document.getElementById("date").value;
-
-    let grossWeight =
-        parseFloat(document.getElementById("grossWeight").value);
-
-    let netWeight =
-        parseFloat(document.getElementById("netWeight").value);
-
-    let kgRate =
-        parseFloat(document.getElementById("kgRate").value);
-
+    let customerName = document.getElementById("customerName").value;
+    let date = document.getElementById("date").value;
+    let grossWeight = parseFloat(document.getElementById("grossWeight").value);
+    let netWeight = parseFloat(document.getElementById("netWeight").value);
+    let kgRate = parseFloat(document.getElementById("kgRate").value);
     let amount = netWeight * kgRate;
 
     let entry = {
@@ -67,112 +59,118 @@ form.addEventListener("submit", function (e) {
         amount
     };
 
-    let entries =
-        JSON.parse(localStorage.getItem("entries")) || [];
-
-    let editIndex =
-        localStorage.getItem("editEntryIndex");
+    let entries = JSON.parse(localStorage.getItem("entries")) || [];
+    let editIndex = localStorage.getItem("editEntryIndex");
 
     if (editIndex !== null) {
-
         entries[editIndex] = entry;
-
         localStorage.removeItem("editEntryIndex");
-
         alert("Entry Updated Successfully");
-
     } else {
-
         entries.push(entry);
-
         alert("Entry Saved Successfully");
     }
 
-    localStorage.setItem(
-        "entries",
-        JSON.stringify(entries)
-    );
-
+    localStorage.setItem("entries", JSON.stringify(entries));
     form.reset();
-
+    
+    // Clear search box value to reset the view completely on save/update
+    if (searchBox) searchBox.value = ""; 
     loadEntries();
 });
 
 /* EDIT */
-
 function editEntry(index) {
-
-    let entries =
-        JSON.parse(localStorage.getItem("entries")) || [];
-
+    let entries = JSON.parse(localStorage.getItem("entries")) || [];
     let entry = entries[index];
 
-    document.getElementById("customerName").value =
-        entry.customerName;
+    document.getElementById("customerName").value = entry.customerName;
+    document.getElementById("date").value = entry.date;
+    document.getElementById("grossWeight").value = entry.grossWeight;
+    document.getElementById("netWeight").value = entry.netWeight;
+    document.getElementById("kgRate").value = entry.kgRate;
 
-    document.getElementById("date").value =
-        entry.date;
-
-    document.getElementById("grossWeight").value =
-        entry.grossWeight;
-
-    document.getElementById("netWeight").value =
-        entry.netWeight;
-
-    document.getElementById("kgRate").value =
-        entry.kgRate;
-
-    localStorage.setItem(
-        "editEntryIndex",
-        index
-    );
+    localStorage.setItem("editEntryIndex", index);
 }
 
 /* DELETE */
-
 function deleteEntry(index) {
-
     if (!confirm("Delete this customer record?")) {
         return;
     }
 
-    let entries =
-        JSON.parse(localStorage.getItem("entries")) || [];
-
+    let entries = JSON.parse(localStorage.getItem("entries")) || [];
     entries.splice(index, 1);
 
-    localStorage.setItem(
-        "entries",
-        JSON.stringify(entries)
-    );
-
+    localStorage.setItem("entries", JSON.stringify(entries));
+    
+    // Clear search box value to prevent indexing mismatches on refresh
+    if (searchBox) searchBox.value = ""; 
     loadEntries();
 }
 
-/* SEARCH */
-
+/* 2. Replaced Search & Aggregation Section */
 if (searchBox) {
-
     searchBox.addEventListener("input", function () {
+        let value = this.value.toLowerCase().trim();
+        let entries = JSON.parse(localStorage.getItem("entries")) || [];
 
-        let value = this.value.toLowerCase();
-
-        let entries =
-            JSON.parse(localStorage.getItem("entries")) || [];
+        if (value === "") {
+            loadEntries();
+            summarySection.style.display = "none";
+            return;
+        }
 
         let filtered = entries.filter(entry =>
-            entry.customerName
-                .toLowerCase()
-                .includes(value)
+            entry.customerName.toLowerCase().includes(value)
         );
 
-        loadEntries(filtered);
+        tableBody.innerHTML = "";
+
+        let totalGross = 0;
+        let totalNet = 0;
+        let totalRate = 0;
+        let totalAmount = 0;
+
+        filtered.forEach((entry, index) => {
+            totalGross += Number(entry.grossWeight);
+            totalNet += Number(entry.netWeight);
+            totalRate += Number(entry.kgRate);
+            totalAmount += Number(entry.amount);
+
+            tableBody.innerHTML += `
+            <tr>
+                <td>${index === 0 ? entry.customerName : ""}</td>
+                <td>${entry.date}</td>
+                <td>${entry.grossWeight}</td>
+                <td>${entry.netWeight}</td>
+                <td>${entry.kgRate}</td>
+                <td>${entry.amount}</td>
+                <td>
+                    <button onclick="editEntry(${entries.indexOf(entry)})">
+                        Edit
+                    </button>
+                    <button onclick="deleteEntry(${entries.indexOf(entry)})">
+                        Delete
+                    </button>
+                </td>
+            </tr>`;
+        });
+
+        summaryTableBody.innerHTML = `
+        <tr>
+            <td>${filtered.length ? filtered[0].customerName : ""}</td>
+            <td>${totalGross}</td>
+            <td>${totalNet}</td>
+            <td>${totalRate}</td>
+            <td>${totalAmount}</td>
+        </tr>`;
+
+        summarySection.style.display = filtered.length ? "block" : "none";
     });
 }
 
 /* PAGE LOAD */
-
 window.addEventListener("load", function () {
-
     loadEntries();
 });

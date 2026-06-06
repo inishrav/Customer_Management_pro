@@ -73,6 +73,7 @@
         id="searchCustomer"
         placeholder="Search Customer Name...">
 
+    <!-- Customer Records Table -->
     <table border="1" width="100%">
         <thead>
             <tr>
@@ -90,6 +91,29 @@
         </tbody>
 
     </table>
+
+    <!-- Customer Summary -->
+    <div id="summarySection" style="display:none; margin-top:30px;">
+
+        <h2>Customer's Total</h2>
+
+        <table border="1" width="100%">
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Total Gross Weight</th>
+                    <th>Total Net Weight</th>
+                    <th>Total KG Rate</th>
+                    <th>Total Amount</th>
+                </tr>
+            </thead>
+
+            <tbody id="summaryTableBody">
+            </tbody>
+
+        </table>
+
+    </div>
 
 </div>
 
