@@ -60,15 +60,35 @@ select:focus{
     box-shadow:0 0 6px rgba(0,123,255,0.3);
 }
 
-/* SEARCH BOX */
+/* ============================= */
+/* SEARCH BAR SECTION */
+/* ============================= */
+
+.search-container{
+    display:flex;
+    gap:15px;
+    margin-bottom:20px;
+    align-items:center;
+}
+
+.search-container input{
+    flex:1;
+    padding:12px;
+    border:1px solid #ccc;
+    border-radius:8px;
+    font-size:15px;
+}
+
+.search-container input:focus{
+    border-color:#007bff;
+    box-shadow:0 0 6px rgba(0,123,255,0.3);
+}
+
+/* Individual Search Boxes */
 
 #searchCustomer,
-#searchBox{
+#financialYear{
     width:100%;
-    padding:12px;
-    border-radius:8px;
-    border:1px solid #ccc;
-    margin-bottom:20px;
 }
 
 /* BUTTONS */
@@ -289,5 +309,10 @@ table tr:hover{
     .nav-buttons button{
         width:100%;
         margin-bottom:10px;
+    }
+
+    .search-container{
+        flex-direction:column;
+        gap:10px;
     }
 }

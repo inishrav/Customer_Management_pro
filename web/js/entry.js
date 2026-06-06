@@ -1,10 +1,37 @@
 let form = document.getElementById("entryForm");
 let tableBody = document.getElementById("customerTableBody");
 let searchBox = document.getElementById("searchCustomer");
+let searchFYBox = document.getElementById("searchFinancialYear"); // Financial Year input variable
 
-// 1. Added Summary Section Variables
+// Summary Section Variables
 let summarySection = document.getElementById("summarySection");
 let summaryTableBody = document.getElementById("summaryTableBody");
+let overallSummaryBody = document.getElementById("overallSummaryBody");
+
+/* CALC LOGIC FOR OVERALL SUMMARY */
+function updateOverallSummary() {
+    if (!overallSummaryBody) return;
+    
+    let entries = JSON.parse(localStorage.getItem("entries")) || [];
+    
+    let overallGross = 0;
+    let overallNet = 0;
+    let overallAmount = 0;
+    
+    entries.forEach(entry => {
+        overallGross += parseFloat(entry.grossWeight) || 0;
+        overallNet += parseFloat(entry.netWeight) || 0;
+        overallAmount += parseFloat(entry.amount) || 0;
+    });
+    
+    overallSummaryBody.innerHTML = `
+    <tr>
+        <td>${overallGross}</td>
+        <td>${overallNet}</td>
+        <td>${overallAmount}</td>
+    </tr>
+    `;
+}
 
 function loadEntries(data = null) {
     let entries = JSON.parse(localStorage.getItem("entries")) || [];
@@ -13,6 +40,14 @@ function loadEntries(data = null) {
     tableBody.innerHTML = "";
 
     list.forEach((entry, index) => {
+        const actualIndex = data ? entries.findIndex(e =>
+            e.customerName === entry.customerName &&
+            e.date === entry.date &&
+            Number(e.grossWeight) === Number(entry.grossWeight) &&
+            Number(e.netWeight) === Number(entry.netWeight) &&
+            Number(e.kgRate) === Number(entry.kgRate)
+        ) : index;
+
         tableBody.innerHTML += `
         <tr>
             <td>${entry.customerName}</td>
@@ -22,10 +57,10 @@ function loadEntries(data = null) {
             <td>${entry.kgRate}</td>
             <td>${entry.amount}</td>
             <td>
-                <button onclick="editEntry(${index})">
+                <button onclick="editEntry(${actualIndex})">
                     Edit
                 </button>
-                <button onclick="deleteEntry(${index})">
+                <button onclick="deleteEntry(${actualIndex})">
                     Delete
                 </button>
             </td>
@@ -33,9 +68,110 @@ function loadEntries(data = null) {
         `;
     });
 
-    // Hide summary section when full/unfiltered list is loaded
     if (!data && summarySection) {
         summarySection.style.display = "none";
+    }
+    
+    updateOverallSummary();
+}
+
+/* FIXED CALENDAR YEAR FILTER LOGIC */
+function filterRecords() {
+    let nameValue = searchBox ? searchBox.value.toLowerCase().trim() : "";
+    let fyValue = searchFYBox ? searchFYBox.value.trim() : "";
+    let entries = JSON.parse(localStorage.getItem("entries")) || [];
+
+    // If both search fields are clear, show everything
+    if (nameValue === "" && fyValue === "") {
+        loadEntries();
+        if (summarySection) summarySection.style.display = "none";
+        return;
+    }
+
+    let filtered = entries.filter(entry => {
+        // 1. Customer Name Filter
+        let matchesName =
+            nameValue === "" ||
+            entry.customerName.toLowerCase().includes(nameValue);
+
+        // 2. Custom Year Filter Logic
+        let matchesFY = true;
+
+        if (fyValue !== "") {
+            // Extract the full 4-digit year from the entry's date (e.g., "2025-01-06" -> 2025)
+            let entryYear = new Date(entry.date).getFullYear();
+            
+            // Clean up the search string (remove spaces)
+            let cleanFY = fyValue.replace(/\s/g, "");
+
+            if (cleanFY.includes("-")) {
+                // Split "25-26" into ["25", "26"]
+                let years = cleanFY.split("-");
+                let startYear = 2000 + parseInt(years[0]);
+                let endYear = 2000 + parseInt(years[1]);
+
+                // Matches if entry is in EITHER of those two years
+                matchesFY = (entryYear === startYear || entryYear === endYear);
+            } else {
+                // Single year search like "25" -> matches 2025
+                let singleYear = 2000 + parseInt(cleanFY);
+                matchesFY = (entryYear === singleYear);
+            }
+        }
+
+        return matchesName && matchesFY;
+    });
+
+    tableBody.innerHTML = "";
+
+    let totalGross = 0;
+    let totalNet = 0;
+    let totalAmount = 0;
+
+    filtered.forEach(entry => {
+        const originalIndex = entries.findIndex(e =>
+            e.customerName === entry.customerName &&
+            e.date === entry.date &&
+            Number(e.grossWeight) === Number(entry.grossWeight) &&
+            Number(e.netWeight) === Number(entry.netWeight) &&
+            Number(e.kgRate) === Number(entry.kgRate)
+        );
+
+        totalGross += Number(entry.grossWeight);
+        totalNet += Number(entry.netWeight);
+        totalAmount += Number(entry.amount);
+
+        tableBody.innerHTML += `
+        <tr>
+            <td>${entry.customerName}</td>
+            <td>${entry.date}</td>
+            <td>${entry.grossWeight}</td>
+            <td>${entry.netWeight}</td>
+            <td>${entry.kgRate}</td>
+            <td>${entry.amount}</td>
+            <td>
+                <button onclick="editEntry(${originalIndex})">
+                    Edit
+                </button>
+                <button onclick="deleteEntry(${originalIndex})">
+                    Delete
+                </button>
+            </td>
+        </tr>`;
+    });
+
+    if (summaryTableBody) {
+        summaryTableBody.innerHTML = `
+        <tr>
+            <td>${nameValue || "All Customers"}</td>
+            <td>${totalGross}</td>
+            <td>${totalNet}</td>
+            <td>${totalAmount}</td>
+        </tr>`;
+    }
+
+    if (summarySection) {
+        summarySection.style.display = filtered.length ? "block" : "none";
     }
 }
 
@@ -74,8 +210,8 @@ form.addEventListener("submit", function (e) {
     localStorage.setItem("entries", JSON.stringify(entries));
     form.reset();
     
-    // Clear search box value to reset the view completely on save/update
     if (searchBox) searchBox.value = ""; 
+    if (searchFYBox) searchFYBox.value = ""; 
     loadEntries();
 });
 
@@ -104,70 +240,17 @@ function deleteEntry(index) {
 
     localStorage.setItem("entries", JSON.stringify(entries));
     
-    // Clear search box value to prevent indexing mismatches on refresh
     if (searchBox) searchBox.value = ""; 
+    if (searchFYBox) searchFYBox.value = ""; 
     loadEntries();
 }
 
-/* 2. Replaced Search & Aggregation Section */
+/* SEARCH EVENT LISTENERS */
 if (searchBox) {
-    searchBox.addEventListener("input", function () {
-        let value = this.value.toLowerCase().trim();
-        let entries = JSON.parse(localStorage.getItem("entries")) || [];
-
-        if (value === "") {
-            loadEntries();
-            summarySection.style.display = "none";
-            return;
-        }
-
-        let filtered = entries.filter(entry =>
-            entry.customerName.toLowerCase().includes(value)
-        );
-
-        tableBody.innerHTML = "";
-
-        let totalGross = 0;
-        let totalNet = 0;
-        let totalRate = 0;
-        let totalAmount = 0;
-
-        filtered.forEach((entry, index) => {
-            totalGross += Number(entry.grossWeight);
-            totalNet += Number(entry.netWeight);
-            totalRate += Number(entry.kgRate);
-            totalAmount += Number(entry.amount);
-
-            tableBody.innerHTML += `
-            <tr>
-                <td>${index === 0 ? entry.customerName : ""}</td>
-                <td>${entry.date}</td>
-                <td>${entry.grossWeight}</td>
-                <td>${entry.netWeight}</td>
-                <td>${entry.kgRate}</td>
-                <td>${entry.amount}</td>
-                <td>
-                    <button onclick="editEntry(${entries.indexOf(entry)})">
-                        Edit
-                    </button>
-                    <button onclick="deleteEntry(${entries.indexOf(entry)})">
-                        Delete
-                    </button>
-                </td>
-            </tr>`;
-        });
-
-        summaryTableBody.innerHTML = `
-        <tr>
-            <td>${filtered.length ? filtered[0].customerName : ""}</td>
-            <td>${totalGross}</td>
-            <td>${totalNet}</td>
-            <td>${totalRate}</td>
-            <td>${totalAmount}</td>
-        </tr>`;
-
-        summarySection.style.display = filtered.length ? "block" : "none";
-    });
+    searchBox.addEventListener("input", filterRecords);
+}
+if (searchFYBox) {
+    searchFYBox.addEventListener("input", filterRecords);
 }
 
 /* PAGE LOAD */

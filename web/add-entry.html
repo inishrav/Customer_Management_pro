@@ -66,14 +66,48 @@
 
     <hr>
 
+    <!-- OVERALL TOTAL -->
+
+    <h2>Overall Total</h2>
+
+    <table border="1" width="100%">
+        <thead>
+            <tr>
+                <th>Total Gross Weight</th>
+                <th>Total Net Weight</th>
+                <th>Total Amount</th>
+            </tr>
+        </thead>
+
+        <tbody id="overallSummaryBody">
+        </tbody>
+
+    </table>
+
+    <br><br>
+
+    <!-- CUSTOMER RECORDS -->
+
     <h2>Customer Records</h2>
 
-    <input
-        type="text"
-        id="searchCustomer"
-        placeholder="Search Customer Name...">
+    <!-- TWO SEARCH BOXES -->
 
-    <!-- Customer Records Table -->
+    <div class="search-container">
+
+        <input
+            type="text"
+            id="searchCustomer"
+            placeholder="Search Customer Name...">
+
+        <input
+            type="text"
+            id="searchFinancialYear"
+            placeholder="Financial Year (Ex: 25-26)">
+
+    </div>
+
+    <!-- CUSTOMER RECORDS TABLE -->
+
     <table border="1" width="100%">
         <thead>
             <tr>
@@ -92,10 +126,13 @@
 
     </table>
 
-    <!-- Customer Summary -->
-    <div id="summarySection" style="display:none; margin-top:30px;">
+    <!-- INDIVIDUAL CUSTOMER TOTAL -->
 
-        <h2>Customer's Total</h2>
+    <div
+        id="summarySection"
+        style="display:none;margin-top:30px;">
+
+        <h2>Customer's Individual Total</h2>
 
         <table border="1" width="100%">
             <thead>
@@ -103,7 +140,6 @@
                     <th>Customer</th>
                     <th>Total Gross Weight</th>
                     <th>Total Net Weight</th>
-                    <th>Total KG Rate</th>
                     <th>Total Amount</th>
                 </tr>
             </thead>
