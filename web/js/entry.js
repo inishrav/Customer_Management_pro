@@ -6,33 +6,6 @@ let searchFYBox = document.getElementById("searchFinancialYear"); // Financial Y
 // Summary Section Variables
 let summarySection = document.getElementById("summarySection");
 let summaryTableBody = document.getElementById("summaryTableBody");
-let overallSummaryBody = document.getElementById("overallSummaryBody");
-
-/* CALC LOGIC FOR OVERALL SUMMARY (UPDATED) */
-function updateOverallSummary(data = null) {
-    if (!overallSummaryBody) return;
-    
-    // If specific filtered data is passed, calculate using it. Otherwise, use all records.
-    let entries = data || JSON.parse(localStorage.getItem("entries")) || [];
-    
-    let overallGross = 0;
-    let overallNet = 0;
-    let overallAmount = 0;
-    
-    entries.forEach(entry => {
-        overallGross += Number(entry.grossWeight) || 0;
-        overallNet += Number(entry.netWeight) || 0;
-        overallAmount += Number(entry.amount) || 0;
-    });
-    
-    overallSummaryBody.innerHTML = `
-    <tr>
-        <td>${overallGross}</td>
-        <td>${overallNet}</td>
-        <td>${overallAmount}</td>
-    </tr>
-    `;
-}
 
 function loadEntries(data = null) {
     let entries = JSON.parse(localStorage.getItem("entries")) || [];
@@ -72,24 +45,18 @@ function loadEntries(data = null) {
     if (!data && summarySection) {
         summarySection.style.display = "none";
     }
-    
-    // When clearing/resetting or on initial load, show the total summary for all records
-    if (!data) {
-        updateOverallSummary(entries);
-    }
 }
 
-/* PALM SEASON FINANCIAL YEAR FILTER LOGIC (UPDATED) */
+/* PALM SEASON FINANCIAL YEAR FILTER LOGIC */
 function filterRecords() {
     let nameValue = searchBox ? searchBox.value.toLowerCase().trim() : "";
     let fyValue = searchFYBox ? searchFYBox.value.trim() : "";
     let entries = JSON.parse(localStorage.getItem("entries")) || [];
 
-    // If both search fields are clear, show everything and reset summaries
+    // If both search fields are clear, show everything and reset summary section
     if (nameValue === "" && fyValue === "") {
         loadEntries();
         if (summarySection) summarySection.style.display = "none";
-        updateOverallSummary(entries);
         return;
     }
 
@@ -122,7 +89,7 @@ function filterRecords() {
 
                 matchesFY = entryDate >= startDate && entryDate <= endDate;
             } else {
-                matchesFY = false; // Gracefully handles broken/incomplete inputs
+                matchesFY = false; // Handles broken or incomplete user inputs smoothly
             }
         }
         return matchesName && matchesFY;
@@ -179,9 +146,6 @@ function filterRecords() {
     if (summarySection) {
         summarySection.style.display = filtered.length ? "block" : "none";
     }
-
-    // Dynamic overall total calculation according to the current filtered view
-    updateOverallSummary(filtered);
 }
 
 /* SAVE / UPDATE */
