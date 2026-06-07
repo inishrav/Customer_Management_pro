@@ -8,20 +8,21 @@ let summarySection = document.getElementById("summarySection");
 let summaryTableBody = document.getElementById("summaryTableBody");
 let overallSummaryBody = document.getElementById("overallSummaryBody");
 
-/* CALC LOGIC FOR OVERALL SUMMARY */
-function updateOverallSummary() {
+/* CALC LOGIC FOR OVERALL SUMMARY (UPDATED) */
+function updateOverallSummary(data = null) {
     if (!overallSummaryBody) return;
     
-    let entries = JSON.parse(localStorage.getItem("entries")) || [];
+    // If specific filtered data is passed, calculate using it. Otherwise, use all records.
+    let entries = data || JSON.parse(localStorage.getItem("entries")) || [];
     
     let overallGross = 0;
     let overallNet = 0;
     let overallAmount = 0;
     
     entries.forEach(entry => {
-        overallGross += parseFloat(entry.grossWeight) || 0;
-        overallNet += parseFloat(entry.netWeight) || 0;
-        overallAmount += parseFloat(entry.amount) || 0;
+        overallGross += Number(entry.grossWeight) || 0;
+        overallNet += Number(entry.netWeight) || 0;
+        overallAmount += Number(entry.amount) || 0;
     });
     
     overallSummaryBody.innerHTML = `
@@ -72,19 +73,23 @@ function loadEntries(data = null) {
         summarySection.style.display = "none";
     }
     
-    updateOverallSummary();
+    // When clearing/resetting or on initial load, show the total summary for all records
+    if (!data) {
+        updateOverallSummary(entries);
+    }
 }
 
-/* FIXED CALENDAR YEAR FILTER LOGIC */
+/* PALM SEASON FINANCIAL YEAR FILTER LOGIC (UPDATED) */
 function filterRecords() {
     let nameValue = searchBox ? searchBox.value.toLowerCase().trim() : "";
     let fyValue = searchFYBox ? searchFYBox.value.trim() : "";
     let entries = JSON.parse(localStorage.getItem("entries")) || [];
 
-    // If both search fields are clear, show everything
+    // If both search fields are clear, show everything and reset summaries
     if (nameValue === "" && fyValue === "") {
         loadEntries();
         if (summarySection) summarySection.style.display = "none";
+        updateOverallSummary(entries);
         return;
     }
 
@@ -94,31 +99,32 @@ function filterRecords() {
             nameValue === "" ||
             entry.customerName.toLowerCase().includes(nameValue);
 
-        // 2. Custom Year Filter Logic
+        // 2. Custom Palm Season Year Filter Logic (August 1st to March 31st)
         let matchesFY = true;
 
         if (fyValue !== "") {
-            // Extract the full 4-digit year from the entry's date (e.g., "2025-01-06" -> 2025)
-            let entryYear = new Date(entry.date).getFullYear();
-            
-            // Clean up the search string (remove spaces)
+            let seasonYear;
             let cleanFY = fyValue.replace(/\s/g, "");
 
+            // If user enters a range like 25-26, isolate the starting year (25)
             if (cleanFY.includes("-")) {
-                // Split "25-26" into ["25", "26"]
-                let years = cleanFY.split("-");
-                let startYear = 2000 + parseInt(years[0]);
-                let endYear = 2000 + parseInt(years[1]);
-
-                // Matches if entry is in EITHER of those two years
-                matchesFY = (entryYear === startYear || entryYear === endYear);
+                seasonYear = parseInt(cleanFY.split("-")[0]);
             } else {
-                // Single year search like "25" -> matches 2025
-                let singleYear = 2000 + parseInt(cleanFY);
-                matchesFY = (entryYear === singleYear);
+                seasonYear = parseInt(cleanFY);
+            }
+
+            if (!isNaN(seasonYear)) {
+                let entryDate = new Date(entry.date);
+                // Season starts: August 1st (e.g., 2025-08-01)
+                let startDate = new Date(`20${seasonYear}-08-01`);
+                // Season ends: March 31st of the next year (e.g., 2026-03-31)
+                let endDate = new Date(`20${seasonYear + 1}-03-31`);
+
+                matchesFY = entryDate >= startDate && entryDate <= endDate;
+            } else {
+                matchesFY = false; // Gracefully handles broken/incomplete inputs
             }
         }
-
         return matchesName && matchesFY;
     });
 
@@ -173,6 +179,9 @@ function filterRecords() {
     if (summarySection) {
         summarySection.style.display = filtered.length ? "block" : "none";
     }
+
+    // Dynamic overall total calculation according to the current filtered view
+    updateOverallSummary(filtered);
 }
 
 /* SAVE / UPDATE */
